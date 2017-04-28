@@ -59,7 +59,6 @@
 
 - (void)awakeFromNib
 {
-    [super awakeFromNib];
     [self commonInit];
 }
 
@@ -104,30 +103,13 @@
     _valueLabelPosition = ValueLabelRight;
 }
 
-- (void)layoutSubviews
+- (void)setChartData:(NSArray *)chartData
 {
-    _axisWidth = self.frame.size.width - 2 * _margin;
-    _axisHeight = self.frame.size.height - 2 * _margin;
-    
-    // Removing the old label views as well as the chart layers.
-    [self.subviews enumerateObjectsUsingBlock:^(__kindof UIView * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
-        [obj removeFromSuperview];
-    }];
-    
-    [self.layers enumerateObjectsUsingBlock:^(id  _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
-        CALayer* layer = (CALayer*)obj;
-        [layer removeFromSuperlayer];
-    }];
-    
-    [self layoutChart];
-    [super layoutSubviews];
-}
-
-- (void)layoutChart
-{
-    if(_data == nil) {
+    if (chartData.count == 0) {
         return;
     }
+    
+    _data = [NSMutableArray arrayWithArray:chartData];
     
     [self computeBounds];
     
@@ -165,16 +147,6 @@
     [self setNeedsDisplay];
 }
 
-- (void)setChartData:(NSArray *)chartData
-{
-    if (chartData == nil || chartData.count == 0) {
-        return;
-    }
-    
-    _data = [NSMutableArray arrayWithArray:chartData];
-    [self layoutChart];
-}
-
 #pragma mark - Labels creation
 
 - (UILabel*)createLabelForValue: (NSUInteger)index
@@ -185,7 +157,7 @@
     CGPoint p = CGPointMake(_margin + (_valueLabelPosition == ValueLabelRight ? _axisWidth : 0), _axisHeight + _margin - (index + 1) * _axisHeight / _verticalGridStep);
     
     NSString* text = _labelForValue(minBound + (maxBound - minBound) / _verticalGridStep * (index + 1));
-    
+    text = [text stringByAppendingString: @"0"];
     if(!text)
     {
         return nil;
@@ -315,7 +287,6 @@
         }
     }
     
-    UIGraphicsPopContext();
 }
 
 - (void)clearChartData
@@ -329,7 +300,9 @@
 - (void)strokeChart
 {
     CGFloat minBound = [self minVerticalBound];
-    CGFloat scale = [self verticalScale];
+    CGFloat maxBound = [self maxVerticalBound];
+    
+    CGFloat scale = _axisHeight / (maxBound - minBound);
     
     UIBezierPath *noPath = [self getLinePath:0 withSmoothing:_bezierSmoothing close:NO];
     UIBezierPath *path = [self getLinePath:scale withSmoothing:_bezierSmoothing close:NO];
@@ -392,10 +365,20 @@
 - (void)strokeDataPoints
 {
     CGFloat minBound = [self minVerticalBound];
-    CGFloat scale = [self verticalScale];
+    CGFloat maxBound = [self maxVerticalBound];
+    CGFloat scale = _axisHeight / (maxBound - minBound);
     
     for(int i=0;i<_data.count;i++) {
         CGPoint p = [self getPointForIndex:i withScale:scale];
+        UILabel *lbl = [[UILabel alloc] initWithFrame:CGRectMake(p.x - 40, p.y - 20, 80, 20)];
+        lbl.font = [UIFont systemFontOfSize:9];
+        lbl.textColor = [UIColor grayColor];
+        lbl.textAlignment = NSTextAlignmentCenter;
+        lbl.backgroundColor = [UIColor clearColor];
+        lbl.text = [NSString stringWithFormat:@"₹%@", _data[i]];
+        [self addSubview:lbl];
+        [self bringSubviewToFront:lbl];
+        
         p.y +=  minBound * scale;
         
         UIBezierPath* circle = [UIBezierPath bezierPathWithOvalInRect:CGRectMake(p.x - _dataPointRadius, p.y - _dataPointRadius, _dataPointRadius * 2, _dataPointRadius * 2)];
@@ -425,20 +408,6 @@
         scale = (CGFloat)(q * _horizontalGridStep) / (CGFloat)(_data.count - 1);
     }
     
-    return scale;
-}
-
-- (CGFloat)verticalScale
-{
-    CGFloat minBound = [self minVerticalBound];
-    CGFloat maxBound = [self maxVerticalBound];
-    CGFloat spread = maxBound - minBound;
-    CGFloat scale = 0;
-    
-    if (spread != 0) {
-        scale = _axisHeight / spread;
-    }
-
     return scale;
 }
 
@@ -547,9 +516,8 @@
 
 - (CGPoint)getPointForIndex:(NSUInteger)idx withScale:(CGFloat)scale
 {
-    if(idx >= _data.count) {
+    if(idx >= _data.count)
         return CGPointZero;
-    }
     
     // Compute the point position in the view from the data with a set scale value
     NSNumber* number = _data[idx];
