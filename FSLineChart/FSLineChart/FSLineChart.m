@@ -371,8 +371,8 @@
     for(int i=0;i<_data.count;i++) {
         CGPoint p = [self getPointForIndex:i withScale:scale];
         UILabel *lbl = [[UILabel alloc] initWithFrame:CGRectMake(p.x - 40, p.y - 20, 80, 20)];
-        lbl.font = [UIFont systemFontOfSize:9];
-        lbl.textColor = [UIColor grayColor];
+        lbl.font = [UIFont fontWithName:@"Helvetica" size:11];
+        lbl.textColor = [UIColor blackColor];
         lbl.textAlignment = NSTextAlignmentCenter;
         lbl.backgroundColor = [UIColor clearColor];
         lbl.text = [NSString stringWithFormat:@"₹%@", _data[i]];
