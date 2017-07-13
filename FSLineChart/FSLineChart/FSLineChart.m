@@ -135,7 +135,8 @@
     }
     
     if(_labelForIndex) {
-        for(int i=0;i<_horizontalGridStep; i++) {
+        
+        for(int i=0;i<_horizontalGridStep ; i++) {
             UILabel* label = [self createLabelForIndex:i];
             
             if(label) {
