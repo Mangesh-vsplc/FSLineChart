@@ -120,9 +120,6 @@
     
     [self strokeChart];
     
-    if(_displayDataPoint) {
-        [self strokeDataPoints];
-    }
     
     if(_labelForValue) {
         for(int i=0;i<_verticalGridStep;i++) {
@@ -145,6 +142,11 @@
         }
     }
     
+    
+    if(_displayDataPoint) {
+        [self strokeDataPoints];
+    }
+
     [self setNeedsDisplay];
 }
 
