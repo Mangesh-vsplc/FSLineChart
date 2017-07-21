@@ -305,7 +305,10 @@
     CGFloat minBound = [self minVerticalBound];
     CGFloat maxBound = [self maxVerticalBound];
     
-    CGFloat scale = _axisHeight / (maxBound - minBound);
+    CGFloat diffInBound = (maxBound - minBound);
+    diffInBound = (diffInBound <= 0 ) ? 1 : diffInBound;
+    
+    CGFloat scale = _axisHeight / diffInBound;
     
     UIBezierPath *noPath = [self getLinePath:0 withSmoothing:_bezierSmoothing close:NO];
     UIBezierPath *path = [self getLinePath:scale withSmoothing:_bezierSmoothing close:NO];
@@ -369,7 +372,11 @@
 {
     CGFloat minBound = [self minVerticalBound];
     CGFloat maxBound = [self maxVerticalBound];
-    CGFloat scale = _axisHeight / (maxBound - minBound);
+    CGFloat diffInBound = (maxBound - minBound);
+    diffInBound = (diffInBound <= 0 ) ? 1 : diffInBound;
+
+    CGFloat scale = _axisHeight / diffInBound ;
+    
     
     for(int i=0;i<_data.count;i++) {
         CGPoint p = [self getPointForIndex:i withScale:scale];
